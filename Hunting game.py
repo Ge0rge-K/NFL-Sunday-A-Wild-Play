@@ -1,188 +1,193 @@
 import random
 import time
 
-class Player:
-    def __init__(self):
-        self.health = 100
-        self.ammo = 5
-        self.inventory = {'food': 2}  # Initial inventory with 2 food items
-        self.money = 50  # Player starts with 50 money
-        self.alive = True
-        self.weapon = 'pistol'  # Default weapon is a pistol
-        self.weapon_ammo = 5  # Ammo for pistol (5 bullets)
-        self.money_found = 0  # Money earned from animals
-        self.kills = 0  # Keep track of how many animals the player has killed
+# Player attributes stored in a dictionary
+def create_player():
+    return {
+        'health': 100,
+        'ammo': 50,
+        'inventory': {'food': 2},
+        'money': 50,
+        'alive': True,
+        'weapon': 'pistol',
+        'weapon_ammo': 5,
+        'money_found': 500,
+        'kills': 0
+    }
 
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0:
-            self.health = 0
-            self.alive = False
-    
-    def heal(self):
-        if 'food' in self.inventory and self.inventory['food'] > 0:
-            self.health += 30  # Food restores 30 health
-            self.inventory['food'] -= 1
-            print("You ate food and healed 30 health!")
-        else:
-            print("You don't have any food!")
-    
-    def buy_item(self, item, cost):
-        if self.money >= cost:
-            self.money -= cost
-            if item == 'ammo':
-                self.ammo += 5
-            elif item == 'food':
-                self.inventory['food'] += 1
-            elif item == 'm60':
-                self.weapon = 'm60'  # Switch to M60 when bought
-                self.weapon_ammo = 500  # M60 starts with 500 bullets
-                print("You bought the M60 machine gun!")
-            elif item == 'semi_auto_rifle':
-                self.weapon = 'semi_auto_rifle'  # Switch to SemiAutoRifle when found
-                self.weapon_ammo = 100  # SemiAutoRifle starts with 100 bullets
-                print("You picked up the Semi-Auto Rifle with 100 rounds!")
-            print(f"Purchased {item} for {cost} money.")
-        else:
-            print("Not enough money!")
-    
-    def is_alive(self):
-        return self.alive
+# Animal attributes stored in a dictionary
+def create_animal(name, tier, money_reward, health, damage):
+    return {
+        'name': name,
+        'tier': tier,
+        'money_reward': money_reward,
+        'health': health,
+        'attack_damage': damage
+    }
 
+# Function to handle taking damage
+def take_damage(player, amount):
+    player['health'] -= amount
+    if player['health'] <= 0:
+        player['health'] = 0
+        player['alive'] = False
 
-class Animal:
-    def __init__(self, name, tier, money_reward, health, damage):
-        self.name = name
-        self.tier = tier
-        self.money_reward = money_reward
-        self.health = health
-        self.attack_damage = damage
-    
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0:
-            self.health = 0
-            print(f"You defeated the {self.name}!")
-            return True
-        return False
-    
-    def attack(self):
-        return self.attack_damage
+# Function for healing the player
+def heal(player):
+    if 'food' in player['inventory'] and player['inventory']['food'] > 0:
+        player['health'] += 30  # Food restores 30 health
+        player['inventory']['food'] -= 1
+        print("You ate food and healed 30 health!")
+    else:
+        print("You don't have any food!")
 
-    def get_money_reward(self):
-        return self.money_reward
+# Function for buying items
+def buy_item(player, item, cost):
+    if player['money'] >= cost:
+        player['money'] -= cost
+        if item == 'ammo':
+            player['ammo'] += 5
+        elif item == 'food':
+            player['inventory']['food'] += 1
+        elif item == 'm60':
+            player['weapon'] = 'm60'
+            player['weapon_ammo'] = 500
+            print("You bought the M60 machine gun!")
+        elif item == 'semi_auto_rifle':
+            player['weapon'] = 'semi_auto_rifle'
+            player['weapon_ammo'] = 100
+            print("You picked up the Semi-Auto Rifle with 100 rounds!")
+        print(f"Purchased {item} for {cost} money.")
+    else:
+        print("Not enough money!")
 
+# Function to check if player is alive
+def is_alive(player):
+    return player['alive']
 
-class M60:
-    def __init__(self):
-        self.damage_per_bullet = 25
-        self.accuracy = 50  # 50% chance to hit
-        self.bullets_per_shot = 20
-        self.ammo = 500  # M60 starts with 500 bullets
-    
-    def shoot(self, player, animal):
-        if self.ammo < self.bullets_per_shot:
-            print("Not enough ammo for a full burst! Visit the shop to buy more.")
-            return False
-        
-        self.ammo -= self.bullets_per_shot
-        print("Firing the M60...")
-        time.sleep(1)
-        
-        total_damage = 0
-        for _ in range(self.bullets_per_shot):
-            if random.randint(1, 100) <= self.accuracy:  # 50% chance to hit each bullet
-                total_damage += self.damage_per_bullet
-        print(f"You hit the {animal.name} for {total_damage} total damage with the M60!")
-        return animal.take_damage(total_damage)
-
-
-class SemiAutoRifle:
-    def __init__(self):
-        self.damage_per_bullet = 20
-        self.accuracy = 70  # 70% chance to hit
-        self.ammo = 100  # SemiAutoRifle starts with 100 bullets
-    
-    def shoot(self, player, animal):
-        if self.ammo <= 0:
-            print("Out of ammo for the Semi-Auto Rifle! Visit the shop to buy more.")
-            return False
-        
-        self.ammo -= 1
-        print("Firing the Semi-Auto Rifle... BANG!")
-        time.sleep(1)
-
-        # Check for hit accuracy
-        if random.randint(1, 100) <= self.accuracy:  # 70% chance to hit
-            total_damage = self.damage_per_bullet
-            print(f"You hit the {animal.name} for {total_damage} damage with the Semi-Auto Rifle!")
-            animal.take_damage(total_damage)
-        else:
-            print("You missed!")
-        
-        # ASCII art for trees falling after each shot
-        print("\nTree falls with each shot...")
-        self._falling_tree_animation()
-
+# Function to handle animal taking damage
+def animal_take_damage(animal, amount):
+    animal['health'] -= amount
+    if animal['health'] <= 0:
+        animal['health'] = 0
+        print(f"You defeated the {animal['name']}!")
         return True
+    return False
 
-    def _falling_tree_animation(self):
-        trees = [
-            "   ||  ",
-            "   ||  ",
-            "   ||  ",
-            "   ||  ",
-            "   ||  ",
-            "   ||  ",
-            "  /||\\ ",
-            "   ||  ",
-            "   ||  ",
-            "   ||  "
-        ]
-        for i in range(len(trees)):
-            print(trees[i])
-            time.sleep(0.1)
+# Function to handle animal attack
+def animal_attack(animal):
+    return animal['attack_damage']
 
-
+# Function to handle shooting the player
 def shoot(player, animal):
-    print(f"Attempting to shoot the {animal.name} with {player.weapon}...")
-    if player.weapon == 'pistol':
-        if player.ammo <= 0:
+    print(f"Attempting to shoot the {animal['name']} with {player['weapon']}...")
+    if player['weapon'] == 'pistol':
+        if player['ammo'] <= 0:
             print("Out of ammo! Visit the shop to buy more.")
             return False
 
-        player.ammo -= 1
+        player['ammo'] -= 1
         print("Aiming at the animal...")
         time.sleep(1)
 
         chance_to_hit = random.randint(1, 100)
 
-        # 75% chance to hit the animal, 25% chance to miss
-        if chance_to_hit <= 75:
+        if chance_to_hit <= 50:  # 75% chance to hit
             damage = random.randint(10, 25)  # Random damage between 10 and 25
-            print(f"You hit the {animal.name} for {damage} damage!")
-            return animal.take_damage(damage)
+            print(f"You hit the {animal['name']} for {damage} damage!")
+            return animal_take_damage(animal, damage)
         else:
-            print(f"You missed the {animal.name}!")
+            print(f"You missed the {animal['name']}!")
+            print("\nTree falls with each shot...")            
             return False
-    elif player.weapon == 'm60':  # M60 shooting
-        m60 = M60()
-        return m60.shoot(player, animal)
-    elif player.weapon == 'semi_auto_rifle':  # Semi-Auto Rifle shooting
-        semi_auto_rifle = SemiAutoRifle()
-        return semi_auto_rifle.shoot(player, animal)
+            falling_tree_animation()
 
+    elif player['weapon'] == 'm60':
+        m60 = {
+            'damage_per_bullet': 25,
+            'accuracy': 50,
+            'bullets_per_shot': 20,
+            'ammo': 500
+        }
+        return m60_shoot(player, animal, m60)
+    elif player['weapon'] == 'semi_auto_rifle':
+        semi_auto_rifle = {
+            'damage_per_bullet': 20,
+            'accuracy': 70,
+            'ammo': 100
+        }
+        return semi_auto_rifle_shoot(player, animal, semi_auto_rifle)
 
+# Function for shooting with M60
+def m60_shoot(player, animal, m60):
+    if m60['ammo'] < m60['bullets_per_shot']:
+        print("Not enough ammo for a full burst! Visit the shop to buy more.")
+        return False
+
+    m60['ammo'] -= m60['bullets_per_shot']
+    print("Firing the M60...")
+
+    time.sleep(1)
+
+    total_damage = 0
+    for _ in range(m60['bullets_per_shot']):
+        if random.randint(1, 100) <= m60['accuracy']:  # 50% chance to hit each bullet
+            total_damage += m60['damage_per_bullet']
+    print(f"You hit the {animal['name']} for {total_damage} total damage with the M60!")
+    return animal_take_damage(animal, total_damage)
+
+# Function for shooting with Semi-Auto Rifle
+def semi_auto_rifle_shoot(player, animal, semi_auto_rifle):
+    if semi_auto_rifle['ammo'] <= 0:
+        print("Out of ammo for the Semi-Auto Rifle! Visit the shop to buy more.")
+        return False
+
+    semi_auto_rifle['ammo'] -= 20
+    print("Firing the Semi-Auto Rifle... BANG!")
+    time.sleep(1)
+
+    if random.randint(1, 100) <= semi_auto_rifle['accuracy']:
+        total_damage = semi_auto_rifle['damage_per_bullet']
+        print(f"You hit the {animal['name']} for {total_damage} damage with the Semi-Auto Rifle!")
+        animal_take_damage(animal, total_damage)
+    else:
+        print("You missed!")
+
+    print("\nTree falls with each shot...")
+    falling_tree_animation()
+
+    return True
+
+# Function for falling tree animation
+def falling_tree_animation():
+    trees = [
+        "   ||  ",
+        "   ||  ",
+        "   ||  ",
+        "   ||  ",
+        "   ||  ",
+        "   ||  ",
+        "  /||\\ ",
+        "   ||  ",
+        "   ||  ",
+        "   ||  "
+    ]
+    for tree in trees:
+        print(tree)
+
+# Function to handle the bear's turn
 def bear_turn(player, animal):
-    print(f"The {animal.name} attacks!")
-    damage = animal.attack()
-    player.take_damage(damage)
-    print(f"The {animal.name} dealt {damage} damage to you.")
+    print(f"The {animal['name']} attacks!")
+    damage = animal_attack(animal)
+    take_damage(player, damage)
+    print(f"The {animal['name']} dealt {damage} damage to you.")
 
+# Function to display the player's status
 def show_status(player):
-    print(f"\nPlayer Health: {player.health} | Ammo: {player.ammo} | Money: {player.money}")
-    print(f"Food: {player.inventory.get('food', 0)} | Weapon: {player.weapon} ({player.weapon_ammo} ammo)")
+    print(f"\nPlayer Health: {player['health']} | Ammo: {player['ammo']} | Money: {player['money']}")
+    print(f"Food: {player['inventory'].get('food', 0)} | Weapon: {player['weapon']} ({player['weapon_ammo']} ammo)")
 
+# Function shop menu
 def shop(player):
     print("\nWelcome to the Shop!")
     print("1. Buy Ammo (5 bullets) - 20 money")
@@ -193,11 +198,11 @@ def shop(player):
     choice = input("Choose an option: ")
     
     if choice == "1":
-        player.buy_item('ammo', 20)
+        buy_item(player, 'ammo', 20)
     elif choice == "2":
-        player.buy_item('food', 15)
+        buy_item(player, 'food', 15)
     elif choice == "3":
-        player.buy_item('m60', 200)
+        buy_item(player, 'm60', 200)
     elif choice == "4":
         print("Exiting the shop.")
         return
@@ -205,62 +210,53 @@ def shop(player):
         print("Invalid choice. Try again.")
     time.sleep(1)
 
+# Function to encounter animals
 def encounter_animal(player):
-    # Randomly select an animal encounter
     animals = [
-        Animal('Deer', 'Tier 1', 10, 30, 5),
-        Animal('Raccoon', 'Tier 1', 15, 20, 4),
-        Animal('Coyote', 'Tier 2', 25, 40, 7),
-        Animal('Bear', 'Tier 3', 50, 50, 15),
-        Animal('Moose', 'Tier 3', 60, 70, 20),
-        Animal('Bird', 'Tier 1', 5, 10, 2)
+        create_animal('Deer', 'Tier 1', 10, 30, 5),
+        create_animal('Raccoon', 'Tier 1', 15, 20, 4),
+        create_animal('Coyote', 'Tier 2', 25, 40, 7),
+        create_animal('Bear', 'Tier 3', 50, 50, 15),
+        create_animal('Moose', 'Tier 3', 60, 70, 20),
+        create_animal('Bird', 'Tier 1', 5, 10, 2)
     ]
-
     animal = random.choice(animals)
-    print(f"\nA wild {animal.name} appears!")
+    print(f"\nA wild {animal['name']} appears!")
     return animal
 
+# Main game loop
 def game_loop():
-    print("Game script is running...")  # Added print statement for debugging
-    player = Player()
+    print("Game script is running...")
+    player = create_player()
 
-    # Ask the player if they want to pick up the Semi-Auto Rifle
     print("You find a Semi-Auto Rifle with 100 rounds of ammo. Do you want to pick it up?")
     choice = input("Enter 'yes' to pick up the Semi-Auto Rifle or 'no' to leave it: ").lower()
     if choice == 'yes':
-        player.weapon = 'semi_auto_rifle'
-        player.weapon_ammo = 100
+        player['weapon'] = 'semi_auto_rifle'
+        player['weapon_ammo'] = 100
         print("You have picked up the Semi-Auto Rifle.")
 
-    while player.is_alive():
+    while is_alive(player):
         show_status(player)
 
-        # Random encounter in the woods
         print("\nWalking through the forest...")
         time.sleep(2)
 
         print("Trees slowly sway as you walk through the forest...")
-        print("A little character walks into view...\n")
-        print("       O  ")
-        print("      /|\\ ")
-        print("      / \\  ")
         print("You encounter an animal!")
         
         animal = encounter_animal(player)
         time.sleep(1)
 
-        # Player encounters animal, battle begins
         if shoot(player, animal):
-            player.money += animal.get_money_reward()
-            print(f"You earned {animal.get_money_reward()} money!")
-            print(f"Current Money: {player.money}")
-            player.kills += 1
-
+            player['money'] += animal['money_reward']
+            print(f"You earned {animal['money_reward']} money!")
+            print(f"Current Money: {player['money']}")
+            player['kills'] += 1
         else:
             bear_turn(player, animal)
 
-        # After killing 3 animals, ask the player if they want to buy anything or leave
-        if player.kills >= 3:
+        if player['kills'] >= 3:
             print("You've killed 3 animals.")
             print("Would you like to buy anything? (yes/no)")
             buy_choice = input().lower()
